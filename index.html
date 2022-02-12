@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="cid:css-9691a458-23ff-4b4e-8898-78feb6a6a406@mhtml.blink"
+    />
+
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=no"
+    />
+
+    <title>Wordle - A daily word game</title>
+    <meta
+      name="description"
+      content="Guess the hidden word in 6 tries. A new puzzle is available each day."
+    />
+
+    <!-- FB Meta Tags -->
+    <meta property="og:url" content="https://www.powerlanguage.co.uk/wordle/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Wordle - A daily word game" />
+    <meta
+      property="og:description"
+      content="Guess the hidden word in 6 tries. A new puzzle is available each day."
+    />
+    <meta
+      property="og:image"
+      content="https://www.dailywordle.com/images/wordle_og_1200x630.png"
+    />
+
+    <!-- Twitter Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta property="twitter:domain" content="powerlanguage.co.uk" />
+
+    <meta name="theme-color" content="#6aaa64" />
+    <link rel="manifest" href="/scripts/manifest.json" />
+    <link
+      href="https://www.powerlanguage.co.uk/wordle/images/wordle_logo_32x32.png"
+      rel="icon shortcut"
+      sizes="3232"
+    />
+    <link
+      href="https://www.powerlanguage.co.uk/wordle/images/wordle_logo_192x192.png"
+      rel="apple-touch-icon"
+    />
+
+    <style>
+      :root {
+        --green: #6aaa64;
+        --darkendGreen: #538d4e;
+        --yellow: #c9b458;
+        --darkendYellow: #b59f3b;
+        --lightGray: #d8d8d8;
+        --gray: #86888a;
+        --darkGray: #939598;
+        --white: #fff;
+        --black: #212121;
+        --orange: #f5793a;
+        --blue: #85c0f9;
+        font-family: "Clear Sans", "Helvetica Neue", Arial, sans-serif;
+        font-size: 16px;
+        --header-height: 50px;
+        --keyboard-height: 200px;
+        --game-max-width: 500px;
+      }
+
+      :root {
+        --color-tone-1: #1a1a1b;
+        --color-tone-2: #787c7e;
+        --color-tone-3: #878a8c;
+        --color-tone-4: #d3d6da;
+        --color-tone-5: #edeff1;
+        --color-tone-6: #f6f7f8;
+        --color-tone-7: #ffffff;
+        --opacity-50: rgba(255, 255, 255, 0.5);
+      }
+
+      .nightmode {
+        --color-tone-1: #d7dadc;
+        --color-tone-2: #818384;
+        --color-tone-3: #565758;
+        --color-tone-4: #3a3a3c;
+        --color-tone-5: #272729;
+        --color-tone-6: #1a1a1b;
+        --color-tone-7: #121213;
+        --opacity-50: rgba(0, 0, 0, 0.5);
+      }
+
+      :root,
+      .nightmode {
+        --color-background: var(--color-tone-7);
+      }
+
+      :root {
+        --color-present: var(--yellow);
+        --color-correct: var(--green);
+        --color-absent: var(--color-tone-2);
+        --tile-text-color: var(--color-tone-7);
+        --key-text-color: var(--color-tone-1);
+        --key-evaluated-text-color: var(--color-tone-7);
+        --key-bg: var(--color-tone-4);
+        --key-bg-present: var(--color-present);
+        --key-bg-correct: var(--color-correct);
+        --key-bg-absent: var(--color-absent);
+        --modal-content-bg: var(--color-tone-7);
+      }
+
+      .nightmode {
+        --color-present: var(--darkendYellow);
+        --color-correct: var(--darkendGreen);
+        --color-absent: var(--color-tone-4);
+        --tile-text-color: var(--color-tone-1);
+        --key-text-color: var(--color-tone-1);
+        --key-evaluated-text-color: var(--color-tone-1);
+        --key-bg: var(--color-tone-2);
+        --key-bg-present: var(--color-present);
+        --key-bg-correct: var(--color-correct);
+        --key-bg-absent: var(--color-absent);
+        --modal-content-bg: var(--color-tone-7);
+      }
+
+      .colorblind {
+        --color-correct: var(--orange);
+        --color-present: var(--blue);
+        --tile-text-color: var(--white);
+        --key-bg-present: var(--color-present);
+        --key-bg-correct: var(--color-correct);
+        --key-bg-absent: var(--color-absent);
+      }
+
+      html {
+        height: 100%;
+      }
+
+      body {
+        height: 100%;
+        background-color: var(--color-background);
+        margin: 0px;
+        padding: 0px;
+        overflow-y: hidden;
+      }
+    </style>
+  </head>
+  <body class="nightmode">
+    <script src="/scripts/main.js"></script>
+    <game-app
+      ><template shadowmode="open">
+        <game-theme-manager>
+          <div id="game">
+            <header>
+              <div class="menu">
+                <button id="help-button" class="icon" aria-label="help">
+                  <game-icon icon="help"
+                    ><template shadowmode="open">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        width="24"
+                      >
+                        <path
+                          fill="var(--color-tone-3)"
+                          d="M11 18h2v-2h-2v2zm1-16C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-2.21 0-4 1.79-4 4h2c0-1.1.9-2 2-2s2 .9 2 2c0 2-3 1.75-3 5h2c0-2.25 3-2.5 3-5 0-2.21-1.79-4-4-4z"
+                        ></path>
+                      </svg> </template
+                  ></game-icon>
+                </button>
+              </div>
+              <div class="title">WORDLE</div>
+              <div class="menu">
+                <button
+                  id="statistics-button"
+                  class="icon"
+                  aria-label="statistics"
+                >
+                  <game-icon icon="statistics"
+                    ><template shadowmode="open">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        width="24"
+                      >
+                        <path
+                          fill="var(--color-tone-3)"
+                          d="M16,11V3H8v6H2v12h20V11H16z M10,5h4v14h-4V5z M4,11h4v8H4V11z M20,19h-4v-6h4V19z"
+                        ></path>
+                      </svg> </template
+                  ></game-icon>
+                </button>
+                <button id="settings-button" class="icon" aria-label="settings">
+                  <game-icon icon="settings"
+                    ><template shadowmode="open">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        width="24"
+                      >
+                        <path
+                          fill="var(--color-tone-3)"
+                          d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"
+                        ></path>
+                      </svg> </template
+                  ></game-icon>
+                </button>
+              </div>
+            </header>
+            <div id="board-container">
+              <div id="board" style="width: 335px; height: 402px">
+                <game-row letters="tears" length="5"
+                  ><template shadowmode="open">
+                    <div class="row">
+                      <game-tile letter="t" evaluation="absent" reveal=""
+                        ><template shadowmode="open">
+                          <div
+                            class="tile"
+                            data-state="absent"
+                            data-animation="idle"
+                          >
+                            t
+                          </div>
+                        </template></game-tile
+                      ><game-tile letter="e" evaluation="present" reveal=""
+                        ><template shadowmode="open">
+                          <div
+                            class="tile"
+                            data-state="present"
+                            data-animation="idle"
+                          >
+                            e
+                          </div>
+                        </template></game-tile
+                      ><game-tile letter="a" evaluation="absent" reveal=""
+                        ><template shadowmode="open">
+                          <div
+                            class="tile"
+                            data-state="absent"
+                            data-animation="idle"
+                          >
+                            a
+                          </div>
+                        </template></game-tile
+                      ><game-tile letter="r" evaluation="present" reveal=""
+                        ><template shadowmode="open">
+                          <div
+                            class="tile"
+                            data-state="present"
+                            data-animation="idle"
+                          >
+                            r
+                          </div>
+                        </template></game-tile
+                      ><game-tile letter="s" evaluation="absent" reveal=""
+                        ><template shadowmode="open">
+                          <div
+                            class="tile"
+                            data-state="absent"
+                            data-animation="idle"
+                          >
+                            s
+                          </div>
+                        </template></game-tile
+                      >
+                    </div>
+                  </template></game-row
+                ><game-row letters="bower" length="5"
+                  ><template shadowmode="open">
+                    <div class="row">
+                      <game-tile letter="b" evaluation="absent" reveal=""
+                        ><template shadowmode="open">
+                          <div
+                            class="tile"
+                            data-state="absent"
+                            data-animation="idle"
+                          >
+                            b
+                          </div>
+                        </template></game-tile
+                      ><game-tile letter="o" evaluation="absent" reveal=""
+                        ><template shadowmode="open">
+                          <div
+                            class="tile"
+                            data-state="absent"
+                            data-animation="idle"
+                          >
+                            o
+                          </div>
+                        </template></game-tile
+                      ><game-tile letter="w" evaluation="absent" reveal=""
+                        ><template shadowmode="open">
+                          <div
+                            class="tile"
+                            data-state="absent"
+                            data-animation="idle"
+                          >
+                            w
+                          </div>
+                        </template></game-tile
+                      ><game-tile letter="e" evaluation="correct" reveal=""
+                        ><template shadowmode="open">
+                          <div
+                            class="tile"
+                            data-state="correct"
+                            data-animation="idle"
+                          >
+                            e
+                          </div>
+                        </template></game-tile
+                      ><game-tile letter="r" evaluation="correct" reveal=""
+                        ><template shadowmode="open">
+                          <div
+                            class="tile"
+                            data-state="correct"
+                            data-animation="idle"
+                          >
+                            r
+                          </div>
+                        </template></game-tile
+                      >
+                    </div>
+                  </template></game-row
+                ><game-row letters="hiker" length="5"
+                  ><template shadowmode="open">
+                    <div class="row">
+                      <game-tile letter="h" evaluation="absent" reveal=""
+                        ><template shadowmode="open">
+                          <div
+                            class="tile"
+                            data-state="absent"
+                            data-animation="idle"
+                          >
+                            h
+                          </div>
+                        </template></game-tile
+                      ><game-tile letter="i" evaluation="absent" reveal=""
+                        ><template shadowmode="open">
+                          <div
+                            class="tile"
+                            data-state="absent"
+                            data-animation="idle"
+                          >
+                            i
+                          </div>
+                        </template></game-tile
+                      ><game-tile letter="k" evaluation="absent" reveal=""
+                        ><template shadowmode="open">
+                          <div
+                            class="tile"
+                            data-state="absent"
+                            data-animation="idle"
+                          >
+                            k
+                          </div>
+                        </template></game-tile
+                      ><game-tile letter="e" evaluation="correct" reveal=""
+                        ><template shadowmode="open">
+                          <div
+                            class="tile"
+                            data-state="correct"
+                            data-animation="idle"
+                          >
+                            e
+                          </div>
+                        </template></game-tile
+                      ><game-tile letter="r" evaluation="correct" reveal=""
+                        ><template shadowmode="open">
+                          <div
+                            class="tile"
+                            data-state="correct"
+                            data-animation="idle"
+                          >
+                            r
+                          </div>
+                        </template></game-tile
+                      >
+                    </div>
+                  </template></game-row
+                ><game-row letters="queer" length="5"
+                  ><template shadowmode="open">
+                    <div class="row">
+                      <game-tile letter="q" evaluation="absent" reveal=""
+                        ><template shadowmode="open">
+                          <div
+                            class="tile"
+                            data-state="absent"
+                            data-animation="idle"
+                          >
+                            q
+                          </div>
+                        </template></game-tile
+                      ><game-tile letter="u" evaluation="present" reveal=""
+                        ><template shadowmode="open">
+                          <div
+                            class="tile"
+                            data-state="present"
+                            data-animation="idle"
+                          >
+                            u
+                          </div>
+                        </template></game-tile
+                      ><game-tile letter="e" evaluation="absent" reveal=""
+                        ><template shadowmode="open">
+                          <div
+                            class="tile"
+                            data-state="absent"
+                            data-animation="idle"
+                          >
+                            e
+                          </div>
+                        </template></game-tile
+                      ><game-tile letter="e" evaluation="correct" reveal=""
+                        ><template shadowmode="open">
+                          <div
+                            class="tile"
+                            data-state="correct"
+                            data-animation="idle"
+                          >
+                            e
+                          </div>
+                        </template></game-tile
+                      ><game-tile letter="r" evaluation="correct" reveal=""
+                        ><template shadowmode="open">
+                          <div
+                            class="tile"
+                            data-state="correct"
+                            data-animation="idle"
+                          >
+                            r
+                          </div>
+                        </template></game-tile
+                      >
+                    </div>
+                  </template></game-row
+                ><game-row letters="ulcer" length="5"
+                  ><template shadowmode="open">
+                    <div class="row">
+                      <game-tile letter="u" evaluation="correct" reveal=""
+                        ><template shadowmode="open">
+                          <div
+                            class="tile"
+                            data-state="correct"
+                            data-animation="idle"
+                          >
+                            u
+                          </div>
+                        </template></game-tile
+                      ><game-tile letter="l" evaluation="correct" reveal=""
+                        ><template shadowmode="open">
+                          <div
+                            class="tile"
+                            data-state="correct"
+                            data-animation="idle"
+                          >
+                            l
+                          </div>
+                        </template></game-tile
+                      ><game-tile letter="c" evaluation="correct" reveal=""
+                        ><template shadowmode="open">
+                          <div
+                            class="tile"
+                            data-state="correct"
+                            data-animation="idle"
+                          >
+                            c
+                          </div>
+                        </template></game-tile
+                      ><game-tile letter="e" evaluation="correct" reveal=""
+                        ><template shadowmode="open">
+                          <div
+                            class="tile"
+                            data-state="correct"
+                            data-animation="idle"
+                          >
+                            e
+                          </div>
+                        </template></game-tile
+                      ><game-tile letter="r" evaluation="correct" reveal=""
+                        ><template shadowmode="open">
+                          <div
+                            class="tile"
+                            data-state="correct"
+                            data-animation="idle"
+                          >
+                            r
+                          </div>
+                        </template></game-tile
+                      >
+                    </div>
+                  </template></game-row
+                ><game-row letters="" length="5"
+                  ><template shadowmode="open">
+                    <div class="row">
+                      <game-tile
+                        ><template shadowmode="open">
+                          <div
+                            class="tile"
+                            data-state="empty"
+                            data-animation="idle"
+                          ></div> </template></game-tile
+                      ><game-tile
+                        ><template shadowmode="open">
+                          <div
+                            class="tile"
+                            data-state="empty"
+                            data-animation="idle"
+                          ></div> </template></game-tile
+                      ><game-tile
+                        ><template shadowmode="open">
+                          <div
+                            class="tile"
+                            data-state="empty"
+                            data-animation="idle"
+                          ></div> </template></game-tile
+                      ><game-tile
+                        ><template shadowmode="open">
+                          <div
+                            class="tile"
+                            data-state="empty"
+                            data-animation="idle"
+                          ></div> </template></game-tile
+                      ><game-tile
+                        ><template shadowmode="open">
+                          <div
+                            class="tile"
+                            data-state="empty"
+                            data-animation="idle"
+                          ></div> </template
+                      ></game-tile>
+                    </div> </template
+                ></game-row>
+              </div>
+            </div>
+            <game-keyboard
+              ><template shadowmode="open">
+                <div id="keyboard">
+                  <div class="row">
+                    <button data-key="q" data-state="absent" class="">q</button
+                    ><button data-key="w" data-state="absent" class="">w</button
+                    ><button data-key="e" data-state="correct" class="">
+                      e</button
+                    ><button data-key="r" data-state="correct" class="">
+                      r</button
+                    ><button data-key="t" data-state="absent" class="">t</button
+                    ><button data-key="y">y</button
+                    ><button data-key="u" data-state="correct" class="">
+                      u</button
+                    ><button data-key="i" data-state="absent" class="">i</button
+                    ><button data-key="o" data-state="absent" class="">o</button
+                    ><button data-key="p">p</button>
+                  </div>
+                  <div class="row">
+                    <div class="spacer half"></div>
+                    <button data-key="a" data-state="absent" class="">a</button
+                    ><button data-key="s" data-state="absent" class="">s</button
+                    ><button data-key="d">d</button
+                    ><button data-key="f">f</button
+                    ><button data-key="g">g</button
+                    ><button data-key="h" data-state="absent" class="">h</button
+                    ><button data-key="j">j</button
+                    ><button data-key="k" data-state="absent" class="">k</button
+                    ><button data-key="l" data-state="correct" class="">
+                      l
+                    </button>
+                    <div class="spacer half"></div>
+                  </div>
+                  <div class="row">
+                    <button data-key="↵" class="one-and-a-half">enter</button
+                    ><button data-key="z">z</button
+                    ><button data-key="x">x</button
+                    ><button data-key="c" data-state="correct" class="">
+                      c</button
+                    ><button data-key="v">v</button
+                    ><button data-key="b" data-state="absent" class="">b</button
+                    ><button data-key="n">n</button
+                    ><button data-key="m">m</button
+                    ><button data-key="←" class="one-and-a-half">
+                      <game-icon icon="backspace"
+                        ><template shadowmode="open">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            height="24"
+                            viewBox="0 0 24 24"
+                            width="24"
+                          >
+                            <path
+                              fill="var(--color-tone-1)"
+                              d="M22 3H7c-.69 0-1.23.35-1.59.88L0 12l5.41 8.11c.36.53.9.89 1.59.89h15c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H7.07L2.4 12l4.66-7H22v14zm-11.59-2L14 13.41 17.59 17 19 15.59 15.41 12 19 8.41 17.59 7 14 10.59 10.41 7 9 8.41 12.59 12 9 15.59z"
+                            ></path>
+                          </svg> </template
+                      ></game-icon>
+                    </button>
+                  </div>
+                </div> </template
+            ></game-keyboard>
+            <game-modal open=""
+              ><game-stats highlight-guess="5"
+                ><template shadowmode="open">
+                  <div class="container">
+                    <h1>Statistics</h1>
+                    <div id="statistics">
+                      <div class="statistic-container">
+                        <div class="statistic">20</div>
+                        <div class="label">Played</div>
+                      </div>
+
+                      <div class="statistic-container">
+                        <div class="statistic">95</div>
+                        <div class="label">Win %</div>
+                      </div>
+
+                      <div class="statistic-container">
+                        <div class="statistic">3</div>
+                        <div class="label">Current Streak</div>
+                      </div>
+
+                      <div class="statistic-container">
+                        <div class="statistic">14</div>
+                        <div class="label">Max Streak</div>
+                      </div>
+                    </div>
+                    <h1>Guess Distribution</h1>
+                    <div id="guess-distribution">
+                      <div class="graph-container">
+                        <div class="guess">1</div>
+                        <div class="graph">
+                          <div class="graph-bar" style="width: 7%">
+                            <div class="num-guesses">0</div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="graph-container">
+                        <div class="guess">2</div>
+                        <div class="graph">
+                          <div class="graph-bar align-right" style="width: 14%">
+                            <div class="num-guesses">1</div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="graph-container">
+                        <div class="guess">3</div>
+                        <div class="graph">
+                          <div class="graph-bar align-right" style="width: 71%">
+                            <div class="num-guesses">5</div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="graph-container">
+                        <div class="guess">4</div>
+                        <div class="graph">
+                          <div class="graph-bar align-right" style="width: 71%">
+                            <div class="num-guesses">5</div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="graph-container">
+                        <div class="guess">5</div>
+                        <div class="graph">
+                          <div
+                            class="graph-bar align-right highlight"
+                            style="width: 100%"
+                          >
+                            <div class="num-guesses">7</div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="graph-container">
+                        <div class="guess">6</div>
+                        <div class="graph">
+                          <div class="graph-bar align-right" style="width: 14%">
+                            <div class="num-guesses">1</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="footer">
+                      <div class="countdown">
+                        <h1>Next WORDLE</h1>
+                        <div id="timer">
+                          <div class="statistic-container">
+                            <div class="statistic timer">
+                              <countdown-timer
+                                ><template shadowmode="open">
+                                  <div id="timer">12:59:34</div>
+                                </template></countdown-timer
+                              >
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="share">
+                        <button id="share-button">
+                          Share
+                          <game-icon icon="share"
+                            ><template shadowmode="open">
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                height="24"
+                                viewBox="0 0 24 24"
+                                width="24"
+                              >
+                                <path
+                                  fill="var(--white)"
+                                  d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92c0-1.61-1.31-2.92-2.92-2.92zM18 4c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zM6 13c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm12 7.02c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1z"
+                                ></path>
+                              </svg> </template
+                          ></game-icon>
+                        </button>
+                      </div>
+                    </div>
+                  </div> </template></game-stats
+              ><template shadowmode="open">
+                <div class="overlay">
+                  <div class="content">
+                    <slot></slot>
+                    <div class="close-icon">
+                      <game-icon icon="close"
+                        ><template shadowmode="open">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            height="24"
+                            viewBox="0 0 24 24"
+                            width="24"
+                          >
+                            <path
+                              fill="var(--color-tone-3)"
+                              d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+                            ></path>
+                          </svg> </template
+                      ></game-icon>
+                    </div>
+                  </div>
+                </div> </template
+            ></game-modal>
+            <game-page
+              ><template shadowmode="open">
+                <div class="overlay">
+                  <div class="content">
+                    <header>
+                      <h1><slot></slot></h1>
+                      <game-icon icon="close"
+                        ><template shadowmode="open">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            height="24"
+                            viewBox="0 0 24 24"
+                            width="24"
+                          >
+                            <path
+                              fill="var(--color-tone-3)"
+                              d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+                            ></path>
+                          </svg> </template
+                      ></game-icon>
+                    </header>
+                    <div class="content-container">
+                      <slot name="content"></slot>
+                    </div>
+                  </div>
+                </div> </template
+            ></game-page>
+            <div class="toaster" id="game-toaster"></div>
+            <div class="toaster" id="system-toaster"></div>
+          </div>
+          <template shadowmode="open"> <slot></slot> </template
+        ></game-theme-manager>
+        <div id="debug-tools"></div> </template
+    ></game-app>
+  </body>
+</html>
